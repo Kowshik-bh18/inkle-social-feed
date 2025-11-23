@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{%block title %}
+    <title>{{ profile }}'s page</title>
+{% endblock title %}
+
+{% block content %}
+
+    <div class="container">
+        <div class="row mt-3 md-3">
+            <div class="col-4 md-4">
+                <div class="col-6 d-flex">
+                    {% if profile.avatar %}
+                        <img class="rounded-circle m-1" src="{{ profile.avatar.url }}" style="max-width: 7em; margin:auto; display: block;">
+                    {% else %}
+                        <img class="rounded-circle m-1" src="{% static '/social/avatars/default_avatar.png' %}" style="max-width: 7em;">
+                    {% endif %}
+                    <div class="col align-self-center">
+                        <h2 class="text-center">{{ profile.user.username }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3 md-5">
+                <p>{{ profile.bio }}</p>
+                <p><a href="{% url 'social:follow_detail' profile.user %}">{{ profile.followed_by.count }} followers</p></a>
+                <p><a href="{% url 'social:follow_detail' profile.user %}">{{ profile.follows.count }} following</p></a>
+                <p><i class='fas fa-map-marker-alt'>&nbsp;</i>{{ profile.location }}</p>  
+                <p>coins: {{ profile.coins }} </p>
+
+                {% if profile.user == user %}
+                    <p><a href="/profile_update/{{ profile.user }}" class="btn text-light btn-info">Edit Profile</a></p>
+                    <a href="{% url 'social:logout' %}" class="btn text-light btn-danger">Logout</a>
+                {% else %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        {% if profile in user.profile.follows.all %}
+                            <button class="btn btn-danger" name="follow" value="unfollow">Unfollow</button>
+                        {% else %}
+                            <button class="btn btn-info text-light" name="follow" value="follow">Follow</button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-6">
+            {% for post in profile.user.posts.all %}
+            <div class="card m-2">
+                <div class="card-body">
+                    {% if post.image %}
+                        <img class="img-thumbnails" src="{{ post.image.url }}" style="max-width: 200px;">
+                    {% endif %}
+                    <p class="card-text">{{ post.text }}</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            {{ post.created_at }}
+                            {% if post.user.profile.user == request.user %}
+                                &nbsp;<a href="{% url 'social:post_delete' post.id %}">Delete it<i class="fa fa-trash"></i></a>
+                            {% endif %}
+                        </small>
+                    </p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% endblock content %}
+    
